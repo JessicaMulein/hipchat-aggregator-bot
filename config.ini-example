@@ -1,0 +1,25 @@
+[Authentication]
+; See https://<yourcompany>.hipchat.com/account/api
+auth_token: abracadabra
+xmpp_password: your hipchat password
+
+[Buffer]
+; when a new message is received, move the history bar to
+; current time minus this number of seconds
+; any messages received timestamped before that time will be
+; ignored.
+replay_cutoff: 60
+; how many messages to track md5s for and prevent duplicates
+; during the replay window
+replay_queue_size: 500
+
+[Aggregations]
+; Will attach to all the channels in the right hand side and duplicate
+; the traffic to the appropriate left hand side rooms
+; if a room is listed more than once in multiple destinations,
+; it will be copied to all
+destination_room: {"rooms": ["Test Room","Test Room 2"]}
+
+[Colorization]
+; yellow, green, red, purple, gray, random (default: yellow)
+Test Room: yellow
