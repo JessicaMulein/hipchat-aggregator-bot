@@ -1,11 +1,17 @@
 import sys
+import threading
+import signal
 import os
 
 from optparse import OptionParser
 from aggregator import HipchatAggregatorBot
 
 
+bot = None
+
+
 def main():
+
     import logging
     logging.basicConfig()
 
@@ -38,9 +44,21 @@ def main():
         # if xmpp.connect(('talk.google.com', 5222)):
         #     ...
         bot.process(block=True)
-        print("Done")
     else:
         print("Unable to connect.")
 
+
+def term(signal, frame):
+    if bot:
+        bot.disconnect()
+
 if __name__ == '__main__':
-    sys.exit(main())
+    # add signal handlers
+    signal.signal(signal.SIGTERM, term)
+    signal.signal(signal.SIGABRT, term)
+    signal.signal(signal.SIGQUIT, term)
+
+    main_thread = threading.Thread(target=main)
+    main_thread.start()
+    main_thread.join()
+    sys.exit(0)

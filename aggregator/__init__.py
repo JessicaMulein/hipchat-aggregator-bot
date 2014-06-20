@@ -65,7 +65,11 @@ class HipchatAggregator:
             self.me = False
             raise Exception("Unable to fetch own information")
 
-    def send_message(self, hc_room, message, background='yellow', message_type='html'):
+    def send_message(self,
+                     hc_room,
+                     message,
+                     background='yellow',
+                     message_type='html'):
         return self.hipchat._requests.post(
             'https://api.hipchat.com/v2/room/{}/notification'.format(
                 hc_room['id']
@@ -91,13 +95,34 @@ class HipchatAggregator:
 
         return retval
 
+    def create_topic(self, hc_room):
+        room_list = self.config['Aggregations'][hc_room['name']]['rooms']
+        new_topic = 'Aggregation of ' + ' + '.join(room_list)
+
+        data = {
+            'name': hc_room['name'],
+            'privacy': hc_room['privacy'],
+            'is_archived': hc_room['is_archived'],
+            'is_guest_accessible': hc_room['is_guest_accessible'],
+            'topic': new_topic,
+            'owner': hc_room['owner']
+        }
+        url = self.hipchat.rooms.url + '/' + str(hc_room['id'])
+        self.hipchat._requests.put(
+            url,
+            data=data
+        )
+
     def make_room(self, room):
-        return self.hipchat.create_room(
+        result = self.hipchat.create_room(
             room,
             owner=self.me,
             privacy='private',
             guest_access=False
         )
+        hc_room = self.get_room(result['id'])
+        self.create_topic(hc_room)
+        return hc_room
 
     def is_owner(self, hc_room):
         return hc_room['owner']['id'] == self.me['id']
@@ -265,4 +290,6 @@ class HipchatAggregatorBot(sleekxmpp.ClientXMPP):
             )
 
         # move up the ignore bar (minus specified seconds)
-        self.signon = datetime.now(dateutil.tz.tzutc()) - timedelta(0,self.replay_cutoff)
+        now = datetime.now(dateutil.tz.tzutc())
+        delta = timedelta(0, self.replay_cutoff)
+        self.signon = now - delta
