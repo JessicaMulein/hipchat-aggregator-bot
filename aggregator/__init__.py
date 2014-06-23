@@ -234,6 +234,8 @@ class HipchatAggregatorBot(sleekxmpp.ClientXMPP):
         return None
 
     def filter_replay(self, msg):
+        # TODO: add in timestamp so intentionally repeated messages
+        # get through
         m = md5.new()
         m.update(msg['from'].bare)
         m.update(chr(0))
