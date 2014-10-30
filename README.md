@@ -1,7 +1,5 @@
 hipchat-aggregator-bot
 ======================
-Website at http://bretttrotter-wf.github.io/hipchat-aggregator-bot
-
 The HipChat Aggregator Bot will listen to a set of channels and aggregate all of the chatter
 into one designated channel and color code them for you. The idea is to only need to watch
 once place.
