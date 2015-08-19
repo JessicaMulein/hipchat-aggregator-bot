@@ -18,6 +18,7 @@ class HipchatAggregator:
 
     def __init__(self, config_file='config.ini'):
         parser = ConfigParser()
+        parser.optionxform=str
         parser.read(config_file)
         self.config = {}
         for section in parser.sections():
@@ -174,10 +175,10 @@ class HipchatAggregator:
 
         room_name = self.rooms[room_jid]['hc_room']['name']
 
-        if room_name.lower() not in self.config['Colorization']:
+        if room_name not in self.config['Colorization']:
             return 'yellow'
 
-        return self.config['Colorization'][room_name.lower()]
+        return self.config['Colorization'][room_name]
 
 
 class HipchatAggregatorBot(sleekxmpp.ClientXMPP):
@@ -192,12 +193,20 @@ class HipchatAggregatorBot(sleekxmpp.ClientXMPP):
         self.aggregator = HipchatAggregator(
             config_file=config_file
         )
-
         sleekxmpp.ClientXMPP.__init__(
             self,
             self.aggregator.me['xmpp_jid'],
             self.aggregator.config['Authentication']['xmpp_password']
         )
+
+        # keep alive
+        self.whitespace_keepalive = True
+        self.whitespace_keepalive_interval = 30
+
+        # should never be needed
+        #self.add_event_handler('ssl_invalid_cert', lambda cert: True)
+        #self['feature_mechanisms'].unencrypted_plain = True
+
         self.add_event_handler("session_start", self.session_start)
         self.add_event_handler("groupchat_message", self.groupchat_message)
 
@@ -218,7 +227,7 @@ class HipchatAggregatorBot(sleekxmpp.ClientXMPP):
         for room, ag_room in self.aggregator.room_map.iteritems():
             print "Joining {}".format(room)
 
-            self.plugin['xep_0045'].joinMUC(
+            self['xep_0045'].joinMUC(
                 room,
                 self.aggregator.me['name'],
                 wait=True
